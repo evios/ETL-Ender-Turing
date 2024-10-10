@@ -1,0 +1,7 @@
+enderturing==1.0.0
+pandas
+sqlalchemy
+pydantic
+pydantic-settings
+pyodbc
+tenacity
