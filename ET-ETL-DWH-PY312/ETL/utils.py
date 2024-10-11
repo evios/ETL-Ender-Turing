@@ -9,8 +9,7 @@ from urllib.parse import urlparse, urlunparse
 import pandas as pd
 from sqlalchemy import inspect, UniqueConstraint
 from sqlalchemy.exc import IntegrityError
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type, \
-    before_sleep_log, before_log
+from tenacity import retry, stop_after_attempt, wait_exponential, before_sleep_log, before_log
 
 from settings import settings, logger
 import requests
@@ -252,6 +251,7 @@ def get_unique_constraint_columns(model) -> list:
 
     # fallback to primary key if no constraints defined
     return unique_constraint_columns or get_primary_key_columns(model)
+
 
 def anonymize_database_url(url: str) -> str:
     """ Function to anonymize the DATABASE_URL """

@@ -1,4 +1,4 @@
-enderturing==1.0.0
+enderturing
 pandas
 sqlalchemy
 pydantic

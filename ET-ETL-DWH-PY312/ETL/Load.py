@@ -102,7 +102,7 @@ def load2db(et_data: EnderTuringAPIBaseDicts | EnderTuringAPISessionsData):
                 if idx % settings.log_every == 0:
                     logger.info(f"Loading to DB progress {db_table}: {idx} of {len(et_dict)}")
                 unique_columns = None
-                conditions = []
+                conditions = None
                 existing_record = None
                 update_values = None
                 # Filter out keys from data that do not have corresponding column
@@ -120,6 +120,17 @@ def load2db(et_data: EnderTuringAPIBaseDicts | EnderTuringAPISessionsData):
                         # For MSSQL, check if the row exists and then update, else insert
                         unique_columns = get_unique_constraint_columns(db_model)
                         logger.debug("Unique columns for Table %s: %s", db_table, unique_columns)
+                        # check all unique columns present in data to load
+                        missed_in_loading_data = [col for col in unique_columns if col not in filtered_item]
+                        if missed_in_loading_data:
+                            logger.error(
+                                "Error loading to Table '%s', required key '%s' missed in data: %s",
+                                db_table,
+                                missed_in_loading_data,
+                                filtered_item,
+                            )
+                            exit(-1)  # do not continue loading in case of any errors
+
                         conditions = [
                             getattr(db_model.__table__.c, col) == filtered_item[col] for col in unique_columns
                         ]
@@ -150,7 +161,7 @@ def load2db(et_data: EnderTuringAPIBaseDicts | EnderTuringAPISessionsData):
                             session.execute(row)
                 except Exception:
                     logger.exception(
-                        "Error on loading data to Table %s: for %s record %s",
+                        "Error loading data to Table %s: for %s record %s",
                         db_table,
                         "existed" if existing_record else "NOT existed",
                         filtered_item,
@@ -158,7 +169,8 @@ def load2db(et_data: EnderTuringAPIBaseDicts | EnderTuringAPISessionsData):
                     # Extensive Logging
                     logger.error("Unique columns for Table %s: %s", db_table, unique_columns)
                     logger.error(
-                        "Checked record existence by conditions: %s", [str(condition) for condition in conditions]
+                        "Checked record existence by conditions: %s",
+                        [str(condition) for condition in conditions] if conditions else None,
                     )
                     if existing_record:
                         logger.error(

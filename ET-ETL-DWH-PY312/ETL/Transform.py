@@ -203,11 +203,18 @@ def transform_session_data(
 
     # separate 'scores'
     if "sessions" in et_data and len(et_data["sessions"]) and "scores" not in et_data["sessions"][0]:
-        logger.error("'scores' not present in 'session' dict. Saving to 'sessions.pkl' for debug")
-        df_et_data["sessions"].to_pickle('sessions.pkl')
+        logger.error("'scores' not present in 'sessions' dict. Saving to 'sessions_broken_scores.pkl' for debug")
+        df_et_data["sessions"].to_pickle('sessions_broken_scores.pkl')
     else:
         df_et_data["sessions_scores"] = pd.json_normalize(
             et_data["sessions"], record_path="scores", max_level=0
+        )
+        # one more expand, we store all points in same list under session in API to decrease size
+        df_et_data["sessions_scores"] = pd.json_normalize(
+            df_et_data["sessions_scores"].to_dict(orient='records'),
+            record_path="point_scores",
+            meta=["session_id", "scorecard_id", "reviewer_id", ],
+            max_level=0
         )
 
     # separate 'comments'

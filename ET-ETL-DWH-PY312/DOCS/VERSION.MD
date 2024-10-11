@@ -1,3 +1,3 @@
-version: 1.1.0
-date: 10 Oct 2024
-developer: John (Eugene) Iosifov, Ender Turing
+version: 1.2.0
+date: 11 Oct 2024
+developer: Eugene Iosifov, Ender Turing
