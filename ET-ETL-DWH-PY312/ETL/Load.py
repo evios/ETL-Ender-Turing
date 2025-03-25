@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 
 import pandas as pd
@@ -182,7 +183,7 @@ def load2db(et_data: EnderTuringAPIBaseDicts | EnderTuringAPISessionsData):
     logger.info("--- Data loaded to DB. Done ---")
 
 
-def load2file(et_data: EnderTuringAPIBaseDicts | EnderTuringAPISessionsData):
+def load2file(load_to, et_data: EnderTuringAPIBaseDicts | EnderTuringAPISessionsData, **kwargs):
     def default_converter(obj):
         # Convert all non-serializable objects
         if isinstance(obj, pd.Timestamp):
@@ -190,12 +191,37 @@ def load2file(et_data: EnderTuringAPIBaseDicts | EnderTuringAPISessionsData):
         # Add more conversions here if needed
         return str(obj)
 
-    et_data_vs_schema(et_data)
-    file_name = "sessions.json" if "sessions" in et_data else "dicts.json"
+    # Extension defining
+    ext = load_to if load_to != "file" else "pickle"  # default extension
+    _start_dt = kwargs.get("_start_dt", datetime.now()).strftime('%Y%m%d')
+    _stop_dt = kwargs.get("_start_dt", datetime.now()).strftime('%Y%m%d')
 
-    with open(file_name, 'w') as json_file:
-        json.dump(et_data, json_file, default=default_converter, indent=4)
-    logger.info("--- Data loaded to File %s. Done ---", file_name)
+    for dict_name in et_data.keys():
+        # et_data_vs_schema(et_data)
+        # File name defining
+        if "sessions" in dict_name:
+            file_name = f"{dict_name}-{_start_dt}-{_stop_dt}.{ext}"
+        else:
+            file_name = f"dict-{dict_name}.{ext}"
+
+        logger.info(f"Saving to '{file_name}'")
+        match ext:
+            case "json":
+                pd.DataFrame(et_data[dict_name]).to_json(file_name)
+            case "pickle":
+                pd.DataFrame(et_data[dict_name]).to_pickle(file_name)
+            case "csv":
+                pd.DataFrame(et_data[dict_name]).to_excel(file_name, index=False)
+            case "xlsx":
+                pd.DataFrame(et_data[dict_name]).to_excel(file_name, index=False)
+            case "xls":
+                pd.DataFrame(et_data[dict_name]).to_csv(file_name, index=False)
+            case "tsv":
+                pd.DataFrame(et_data[dict_name]).to_tsv(file_name, index=False)
+            case "parquet":
+                pd.DataFrame(et_data[dict_name]).to_parquet(file_name)
+
+        logger.info("--- Data loaded to File %s. Done ---", file_name)
 
 
 def load(load_to="db", **kwargs):
@@ -207,8 +233,8 @@ def load(load_to="db", **kwargs):
     if load_to == "db":
         load2db(**kwargs)
     if load_to == "looker":
-        logger.info("Load to %s NotImplemented", load_to)
+        logger.error("Load to %s NotImplemented", load_to)
         raise NotImplemented
-    if load_to in "file":
-        logger.info("Load to: %s", load_to)
-        load2file(**kwargs)
+    if load_to in ["file", "json", "xls", "xlsx", "csv", "tsv", "pickle", "parquet"]:
+        logger.info("Load to: %s")
+        load2file(load_to=load_to, **kwargs)

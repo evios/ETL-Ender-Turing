@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Boolean, Float, JSON, DateTime, UniqueConstraint, Unicode, UnicodeText, ForeignKey
+from sqlalchemy import Column, Integer, Boolean, Float, JSON, DateTime, UniqueConstraint, Unicode, ForeignKey
 from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -485,9 +485,9 @@ class SessionSummary(Base):  # Not Implemented
     __tablename__ = 'sessions_summaries'
     id = Column(Integer, primary_key=True, autoincrement=True)
     session_id = Column(UNIQUEIDENTIFIER, ForeignKey('sessions.id'))  # 39094809-18df-4bd0-aa6e-9aced976d823
-    text = Column(UnicodeText)
+    text = Column(Unicode(10000))  # Allows up to 10,000 characters
     __table_args__ = (
-        UniqueConstraint('session_id', name='_sessions_summaries_uc'),
+        UniqueConstraint('session_id', 'text', name='_sessions_summaries_uc'),
     )
 
     session = relationship("Session", back_populates="summary")

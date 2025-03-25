@@ -23,7 +23,7 @@ def etl_base_dicts(load_to: str) -> EnderTuringAPIBaseDicts:
     # 2 - Transformations for base dictionaries
     _et_data_base_dicts = transform_base_dicts(_et_data_base_dicts)
     # 3 - Load data to DB/API/File
-    load(load_to, et_data=_et_data_base_dicts)
+    load(load_to=load_to, et_data=_et_data_base_dicts)
     logger.info("Base dictionaries ETL run time: %s seconds",
                 int((datetime.now() - run_start).total_seconds()))
     return _et_data_base_dicts
@@ -57,9 +57,10 @@ def etl_sessions_period(load_to: str, _start_dt: datetime, _stop_dt: datetime, f
         # 2 - Transform data from ET to DB format
         et_sessions = transform_session_data(et_sessions)
         # 3 - Load data to DB/API/File
-        load(load_to, et_data=et_sessions)
-    logger.info("Period ETL run time: %s seconds",
-                int((datetime.now() - run_start).total_seconds()))
+        load(load_to, et_data=et_sessions, _start_dt=_start_dt, _stop_dt=_stop_dt)
+    logger.info(
+        "Period ETL run time: %s seconds", int((datetime.now() - run_start).total_seconds())
+    )
 
 
 @log_exceptions
@@ -129,7 +130,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="ETL pipeline to Extract Ender Turing data and load to DB/API/file"
     )
-    parser.add_argument("--load-to", default="db")
+    parser.add_argument("--load-to", default="db", choices=[
+        "file", "xls", "xlsx", "csv", "tsv", "json", "pickle", "parquet"
+    ])
     parser.add_argument(
         "--start-dt", default=None, help="start date for historical sync, in YYYY-MM-DD format"
     )
@@ -176,7 +179,7 @@ if __name__ == "__main__":
         f"Running ETL in {'daily' if daily_sync_mode else 'historical'} mode from '{start_dt}' to '{stop_dt}'"
     )
 
-    # Load last successful sync date
+    # Load last successful sync run date
     last_synced = file2dt(settings.last_synced_fpath)
     logger.info(f"Last synced timestamp: {last_synced}")
 
@@ -196,6 +199,6 @@ if __name__ == "__main__":
             _last_synced=last_synced
         )
 
-    # store last successful sync
+    # Store last successful sync run date
     dt2file(dt=datetime.now(), file_path=settings.last_synced_fpath)
     logger.info(f"------- Sync ETL successfully finished at {datetime.now()} -------")

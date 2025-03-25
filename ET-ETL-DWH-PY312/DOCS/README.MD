@@ -21,17 +21,20 @@ Load is in UPSERT mode, we believe all datta in ET is latest and source of truth
 Settings described in `settings.py` file. This will automatically read ENV variable or .env file for variables described in `settings.py`.
 ### Expected variables in ENV or `.env` file 
 ```
-# Extract settings
+# Extract settings (mandatory)
 et_domain=app.enderturing.com
 et_user=et_user@enderturing.com
-et_password=password
-# Load settings
+# Extract settings (optional)
+et_token=token
+et_auth_by_token=False
+et_password=password  # if you do not want password to be asked each script run
+# Load settings (optional)
 DATABASE_URL="mssql+pyodbc://username:password@server/database?driver=ODBC+Driver+17+for+SQL+Server"
 ```
 
 ## Pre-requisites
 ### Base OS level requirements
-Python3.10+ and PIP package manager required
+Python3.12+ and PIP package manager required
 ### Additional Python packages requirements
 ```bash
 pip install -r requirements.txt
@@ -40,10 +43,14 @@ pip install -r requirements.txt
 # How to RUN
 ### Test mode run
 ```bash
-# Test mode will fetch max 200 sessions
+# Test mode will fetch max 200 sessions. Default Load/Store to DB
 python3 run-et-etl.py --test-mode
-# if you need more sessions to fetch in Test mode
+# Load/Store to file instead of DB
+python3 run-et-etl.py --test-mode --load-to json
+# If you need more sessions to fetch in Test mode
 python3 run-et-etl.py --test-mode --test-mode-limit-sessions 500  
+# If you need fetch some historical days in Test mode
+python3 run-et-etl.py --test-mode --test-mode-limit-sessions 500 --start-dt 2025-03-20 --stop-dt 2025-03-21 --load-to pickle
 ```
 
 ### Manual run (for historical, or for long period)

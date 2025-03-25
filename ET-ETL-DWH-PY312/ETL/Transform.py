@@ -173,8 +173,8 @@ def transform_session_data(
     df_et_data = {}
     for dict_name in et_data.keys():
         df_et_data[dict_name] = pd.DataFrame(et_data[dict_name])
-        logger.info(f"Saving '{dict_name}.pkl' for debug purposes")
-        df_et_data[dict_name].to_pickle(f"{dict_name}.pkl")
+        logger.info(f"Saving '{dict_name}-debug.pkl' for debug purposes")
+        df_et_data[dict_name].to_pickle(f"{dict_name}-debug.pkl")
 
     logger.info(f"Flattening columns containing lists -> into separate table")
     logger.info(f"Flattening dataframe columns: %s", df_et_data["sessions"].columns)
@@ -273,7 +273,7 @@ def transform_session_data(
         "compliance_matches", "ptp_kept_prediction", "comment_author_ids",  # might need in future
         "group", "agent", "agent_name", "category_ids",  # already stored in other keys/tables
         "emotions", "activity", "sentiments", "events_call_id", "low_quality",  # don't need
-    ], inplace=True)
+    ], inplace=True, errors="ignore")
     if len(["sessions_reviewers"]) and "name" in df_et_data["sessions_reviewers"].columns:
         df_et_data["sessions_reviewers"].drop(columns=["name"], inplace=True)
     if len(["sessions_summaries"]) and "id" in df_et_data["sessions_summaries"].columns:

@@ -1,7 +1,9 @@
 enderturing
 pandas
+fastparquet
 sqlalchemy
 pydantic
 pydantic-settings
 pyodbc
 tenacity
+openpyxl
